@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stroboscopic effect simulation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #121212;
+      color: #ffffff;
+    }
+    .container {
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+    h1, h2 {
+      margin-bottom: 10px;
+      color: #ffffff;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      border: none;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .slider-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    input[type="range"] {
+      width: 250px;
+      margin: 0 10px;
+    }
+    .arrow {
+      cursor: pointer;
+      font-size: 20px;
+      user-select: none;
+      padding: 0 10px;
+      color: #ffffff;
+    }
+    p {
+      margin: 10px 0;
+    }
+    .revolution-calculations {
+      text-align: center;
+      margin-top: 20px;
+      background: #2e2e2e;
+      padding: 15px;
+      border-radius: 10px;
+      display: inline-block;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .revolution-calculations p {
+      margin: 5px 0;
+    }
+    .revolution-calculations span {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Stroboscopic Effect Simulation</h1>
+    
+    <!--MOTOR-->
+    <button onclick="sendCommand('start_motor')">Start Motor</button>
+    <button onclick="sendCommand('stop_motor')">Stop Motor</button>
+    <h2>Motor Speed</h2>
+    <div class="slider-container">
+      <span class="arrow" onclick="adjustSlider('motorSpeedRange', -1)">&#9664;</span>
+      <input type="range" id="motorSpeedRange" min="0" max="255" value="0" oninput="updateMotorSpeed(this.value)">
+      <span class="arrow" onclick="adjustSlider('motorSpeedRange', 1)">&#9654;</span>
+    </div>
+    <p>Speed: <span id="motorSpeedValue">0</span></p>
+
+    <!--STROBE-->
+    <button onclick="sendCommand('start_strobe')">Start Strobe</button>
+    <button onclick="sendCommand('stop_strobe')">Stop Strobe</button>
+    
+    <h2>Strobe Delay</h2>
+    <div class="slider-container">
+      <span class="arrow" onclick="adjustSlider('strobeDelayRange', -1)">&#9664;</span>
+      <input type="range" id="strobeDelayRange" min="1" max="1000" value="1" oninput="updateStrobeDelay(this.value)">
+      <span class="arrow" onclick="adjustSlider('strobeDelayRange', 1)">&#9654;</span>
+    </div>
+    <p>Delay: <span id="strobeDelayValue">1</span> ms</p>
+    <div class="revolution-calculations">
+      <p>Revolutions per second:</p>
+      <p>~ <span id="rpsValue">0</span> RPS</p>
+      <p>Revolutions per minute:</p>
+      <p>~ <span id="rpmValue">0</span> RPM</p>
+    </div>
+
+  </div>
+
+  <script>
+    function sendCommand(action) {
+      fetch('/change', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: action, 
+          speed: document.getElementById('motorSpeedRange').value, 
+          delay: document.getElementById('strobeDelayRange').value
+        }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Success:', data);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+    }
+
+    function updateMotorSpeed(speed) {
+      document.getElementById('motorSpeedValue').innerText = speed;
+      sendCommand('motor_speed');
+    }
+
+    function updateStrobeDelay(delay) {
+      document.getElementById('strobeDelayValue').innerText = delay;
+      calculateRPS();
+      calculateRPM()
+      sendCommand('strobe_delay');
+    }
+
+    function calculateRPS() {
+      const delay = parseFloat(document.getElementById('strobeDelayRange').value);
+      if (delay > 0) {
+        const rps = 1 / (6 * (delay / 1000));
+        document.getElementById('rpsValue').innerText = rps.toFixed(2);
+      } else {
+        document.getElementById('rpsValue').innerText = '0';
+      }
+    }
+
+    function calculateRPM() {
+      const rps = parseFloat(document.getElementById('rpsValue').innerText);
+      const rpm = rps * 60;
+      document.getElementById('rpmValue').innerText = rpm.toFixed(2);
+    }
+
+    function adjustSlider(sliderId, adjustment) {
+      const slider = document.getElementById(sliderId);
+      let newValue = parseInt(slider.value) + adjustment;
+      newValue = Math.max(slider.min, Math.min(slider.max, newValue));
+      slider.value = newValue;
+      slider.oninput();
+    }
+  </script>
+</body>
+</html>
