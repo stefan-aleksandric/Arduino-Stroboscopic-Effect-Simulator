@@ -1,2 +1,2 @@
 # Arduino-Stroboscopic-Effect-Simulator
-Arduino code and NodeJS server for Arduino Uno board. Used to implement showcase of stroboscopic lightning effect on spinning dc motor for measuring RPM of said motor. Locally hosted web page is used to control lightning effect and motor controls.
+Arduino code and a Node.js server are used with an Arduino Uno board to implement a showcase of a stroboscopic lighting effect on a spinning DC motor for measuring the motor's RPM. A locally hosted web page is used to control the lighting effect and the motor's functions.
